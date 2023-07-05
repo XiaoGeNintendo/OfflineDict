@@ -1,0 +1,310 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.0/dist/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.3/dist/jquery.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.css">
+        <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.9.2/dist/semantic.min.js"></script>
+        <script src="label.js"></script>
+        <script src="dict.js"></script>
+        <script src="common.js"></script>
+        <title>Offline Dictionary</title>
+    </head>
+    <body>
+        
+        <div class="ui container">
+            <div class="ui middle aligned centered stackable grid">
+                <div class="three wide column">
+                    <a href="index.html" class="ui image">
+                        <image id="logo" class="ui image" src="logo.png"></image>
+                    </a>
+                </div>
+                <div class="thirteen wide column">
+                    <div class="ui fluid search">
+                        <div class="ui fluid icon input">
+                            <input class="prompt" id="searchbox" type="text" placeholder="Search for words...">
+                            <i class="search icon"></i>
+                        </div>
+                        <div class="results"></div>
+                    </div>
+                </div>
+            </div>
+            <br/>
+
+            <div class="ui buttons">
+                <button id="btnLeft" class="ui animated button" tabindex="0" onclick="changePage(-1)">
+                    <div class="visible content">Last</div>
+                    <div class="hidden content">
+                      <i class="left arrow icon"></i>
+                    </div>
+                </button>
+                <button class="ui animated fade button" tabindex="0" onclick="changePage(-999999)">
+                    <div class="visible content">
+                        <i class="book icon"></i>
+                        Showing page <span id="pageid" class="ui red text">1</span>
+                    </div>
+                    <div class="hidden content">
+                      Return to page 1
+                    </div>
+                </button>
+
+                <button id="btnRight" class="ui animated button" tabindex="0" onclick="changePage(1)">
+                    <div class="visible content">Next</div>
+                    <div class="hidden content">
+                        <i class="right arrow icon"></i>
+                    </div>
+                </button>
+            </div>
+
+            <br/><br/>
+            
+            <div id="contents"></div>
+
+            <div class="ui divider"></div>
+            <button class="ui vertical animated blue button" tabindex="0" onclick="backToTop()">
+                <div class="visible content">Return to top</div>
+                <div class="hidden content">
+                  <i class="up arrow icon"></i>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <script>
+        
+        function backToTop(){
+            $("html,body").animate({
+                scrollTop:0
+            },500)
+        }
+        console.log(defLabel);
+
+        //parse url
+        var param=new URLSearchParams(window.location.search);
+        var page=param.has("page")?parseInt(param.get("page")):1;
+        var word=param.get("word");
+
+        $('#pageid').text(page);
+
+        //search setup
+        $('#searchbox').val(word);
+
+        $(".ui.search").search({
+            source: dict,
+            searchFields:["word","search","description"],
+            fields:{
+                title:"word",
+            }
+        });
+
+        $('#searchbox').keydown(event => {
+            if(event.keyCode==13){
+                window.location.href="search.html?word="+encodeURIComponent($('#searchbox').val());
+            }
+        });
+
+
+        //generate page count
+        function generateRuby(entry){
+            if(entry.pron==undefined){
+                return entry.word;
+            }else if(typeof entry.pron==="string"){
+                return `<ruby>${entry.word}<rt>${entry.pron}</rt></ruby>`
+            }else{
+                if(entry.pron.length!=entry.word.length){
+                    console.error(entry.word+' does not have a pronunciation array of equal length and is invalid.');
+                    return entry.word;
+                }
+                var s=""
+                for(var i=0;i<entry.pron.length;i++){
+                    s+=`<ruby>${entry.word[i]}<rt>${entry.pron[i]}</rt></ruby>`;
+                }
+                return s;
+            }
+        }
+
+        function generateWordLabel(entry){
+            return entry.tags.map(ele => {
+                var lbl=wordLabel[ele]
+                console.log(ele,lbl)
+                return `
+                <div class="ui ${lbl.color} label" style="margin-top:2px">
+                    <i class="${lbl.icon} icon"></i> ${lbl.text}
+                </div>
+                `
+            }).join("<br/>");
+        }
+
+        function generateTags(exp){
+            return `<div class="abbr">`
+                +exp.tags.map(ele => {
+                    var lbl=defLabel[ele]
+                    console.log(ele,lbl)
+                    return `
+                    <div class="ui mini ${lbl.color} label">
+                        ${ele}
+                    </div>`
+                }).join(" ")
+                +`</div><div class="full">`
+                +exp.tags.map(ele => {
+                    var lbl=defLabel[ele]
+                    return `
+                    <div class="ui mini ${lbl.color} label">
+                        ${lbl.text}
+                    </div>`
+                }).join(" ")
+                +"</div>";
+        }
+
+        function parseSub(str){
+            var newStr="";
+            var escaping="";
+            var escapeMode=false;
+            for(var i=0;i<str.length;i++){
+                if(str[i]=='{'){
+                    escapeMode=true;
+                }else if(str[i]=='}'){
+                    escapeMode=false;
+                    newStr+=`<a href="search.html?word=${encodeURIComponent(escaping)}">${escaping}</a>`
+                }else{
+                    if(escapeMode){
+                        escaping+=str[i];
+                    }else{
+                        newStr+=str[i];
+                    }
+                }
+            }
+            return newStr;
+        }
+
+        function generateExplanation(exp){
+            var template=`
+            <div class="swipper">
+                ${generateTags(exp)}
+            </div>
+            `;
+
+            if(exp.sub==undefined){
+                template+=`<p>${exp.main}</p>`
+            }else{
+                template+=`
+                <p>
+                    ${exp.main} <i class="angle double right icon"></i>
+                    <b><span class="ui grey small text">${parseSub(exp.sub)}</span></b>
+                </p>`
+            }
+            
+            if(exp.example!=undefined){
+                console.log(exp);
+                template+=exp.example.map(ele => {
+                    console.log(ele);
+                    return `
+                <div class="ui segment">
+                    <p><span class="ui grey text">${ele[0]}</span></p>
+                    <p><span class="ui grey text">${ele[1]}</span></p>
+                </div>`
+                }).join("");
+            }
+            return template;
+        }
+
+        function generateOtherForms(entry){
+            if(entry.otherForms==undefined){
+                return "";
+            }else{
+                return `<div class="ui divider"></div>
+            <p><i>Other forms</i></p>
+            <p>${entry.otherForms.join(", ")}</p>`;
+            }
+        }
+
+        function generateEntry(entry){
+            return `
+<div class="ui raised segment flyup">
+    <div class="ui stackable grid">
+        <div class="four wide column">
+            <p><span class="ui big text">${generateRuby(entry)}</span></p>
+            ${generateWordLabel(entry)}
+        </div>
+        <div class="twelve wide column">
+            ${entry.def.map(ele=>generateExplanation(ele)).join(`<div class="ui divider"></div>`)}
+            ${generateOtherForms(entry)}
+        </div>
+    </div>
+</div>
+`
+        }
+
+        var html="";
+        var startLoc=(page-1)*10;
+        var endLoc=page*10;
+        var index=0;
+        var found=false;
+        for(var i=0;i<dict.length;i++){
+            if(dict[i].word.includes(word) || dict[i].search.includes(word)){
+                index++;
+                if(index>endLoc){
+                    break;
+                }else if(index>startLoc){
+                    html+=generateEntry(dict[i])
+                }
+            }
+        }
+
+        found=(html!="");
+
+        if(!found){
+            html="Your search did not yield any result :(";
+        }
+
+        $('#contents').html(html);
+
+        //change page setup
+        function changePage(val){
+            var newPage=Math.max(page+val,1);
+            window.location.href="search.html?word="+encodeURIComponent(word)+"&page="+newPage;
+        }
+        
+        if(page==1){
+            $('#btnLeft').addClass("disabled");
+        }
+        if(!found){
+            $('#btnRight').addClass("disabled");
+        }
+
+        //def label setup
+        var swipeSpeed=150;
+        $(".full").hide();
+        $('.swipper').mouseenter(function(){
+            var self=this;
+            $(this).children().stop();
+            $(this).children('.abbr').fadeOut(swipeSpeed,function(){
+                $(self).children('.full').fadeIn(swipeSpeed);
+            });
+            
+        })
+
+        $('.swipper').mouseleave(function(){
+            var self=this;
+            $(this).children().stop();
+            $(this).children('.full').fadeOut(swipeSpeed,function(){
+                $(self).children('.abbr').fadeIn(swipeSpeed);
+            });
+        });
+
+        //prepare for flying
+        $('.flyup').hide();
+        $('.flyup').transition({
+            animation : 'scale',
+            interval  : 200
+        })
+
+        //dark mode
+        if(localStorage["darkMode"]=="yay"){
+            $('.ui').addClass('inverted')
+            $('body').css('background-color','#1b1c1d');
+            $('#logo').attr('src','logo-dark.png')
+        }
+    </script>
+</html>
+
