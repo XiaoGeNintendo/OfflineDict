@@ -5,7 +5,7 @@ function buildDict(){
         ){
         console.log("Building Dictionary Cache...");
         __dict.forEach(va => {
-            va.search=va.otherForms.join("#");
+            va.search=va.otherForms==undefined?"":va.otherForms.join("#");
             va.description=va.def.map(ele => ele.main).join(".");
             va.url="search.html?word="+encodeURIComponent(va.word);
         });

@@ -6,6 +6,8 @@ A client-side only website dictionary that makes it easy to write custom entries
 # Demo
 See [Github Page](https://xiaogenintendo.github.io/OfflineDict/)
 
+The data used is _Ryujin Dictionary_ of an artificial language described [here](https://xiaogenintendo.github.io/2022/02/20/learn-new-Ryuujin/).
+
 # Usage
 ## dict.js
 ### File Information

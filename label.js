@@ -1,23 +1,69 @@
 var wordLabel={
-    "common":{
-        text:"Common Word",
-        icon:"cloud sun",
-        color:"green"
+    "h":{
+        text:"Source: Chinese/Japanese",
+        icon:"torii gate",
+        color:"red"
     },
-    "n5":{
-        text:"JLPT N5",
-        icon:"cloud sun",
-        color:"yellow"
-    }
+    "or":{
+        text:"Source: Old Ryujinn",
+        icon:"dungeon",
+        color:"violet"
+    },
+    "c":{
+        text:"Source: Compound Character",
+        icon:"compress arrows alternate",
+        color:"blue"
+    },
+    "d":{
+        text:"Source: Dragon Language",
+        icon:"dragon",
+        color:"pink"
+    },
 }
 
 var defLabel={
-    "五る":{
-        text:"Godan verb with ru ending",
+    "n":{
+        text:"Noun",
+        color:"green"
+    },
+    "a":{
+        text:"Adjective",
         color:"yellow"
     },
-    "vi":{
-        text:"Intransitive verb",
-        color:"green"
-    }
+    "v":{
+        text:"Verb",
+        color:"red"
+    },
+    "vr":{
+        text:"Verb phrase with particle 尔",
+        color:"red"
+    },
+    "ad":{
+        text:"Adverb without particle 的",
+        color:"orange"
+    },
+    "ad2":{
+        text:"Adverb with particle 的",
+        color:"orange"
+    },
+    "pron":{
+        text:"Pronoun",
+        color:"olive"
+    },
+    "p":{
+        text:"In a polite way",
+        color:"purple"
+    },
+    "ph":{
+        text:"Set phrase",
+        color:"teal"
+    },
+    "ip":{
+        text:"In a impolite way",
+        color:"violet"
+    },
+    "lit":{
+        text:"Literary or very formal",
+        color:"pink"
+    },
 }
