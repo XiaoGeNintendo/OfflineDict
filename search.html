@@ -130,7 +130,7 @@
             return entry.tags.map(ele => {
                 var lbl=wordLabel[ele]
                 if(lbl==undefined){
-                    console.error(`${ele} doesn't have `)
+                    console.error(`${ele} in ${entry.word} is not a valid word label!`);
                 }
                 // console.log(ele,lbl)
                 return `
@@ -145,7 +145,10 @@
             return `<div class="abbr">`
                 +exp.tags.map(ele => {
                     var lbl=defLabel[ele]
-                    console.log(ele,lbl)
+                    if(lbl==undefined){
+                        console.error(`${ele} in ${exp.main} is not a valid def label!`);
+                    }
+                    // console.log(ele,lbl)
                     return `
                     <div class="ui mini ${lbl.color} label">
                         ${ele}
@@ -201,9 +204,9 @@
             }
             
             if(exp.example!=undefined){
-                console.log(exp);
+                // console.log(exp);
                 template+=exp.example.map(ele => {
-                    console.log(ele);
+                    // console.log(ele);
                     return `
                 <div class="ui segment">
                     <p><span class="ui grey text">${ele[0]}</span></p>
